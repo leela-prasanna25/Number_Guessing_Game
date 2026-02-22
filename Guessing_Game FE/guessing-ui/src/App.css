@@ -1,0 +1,321 @@
+/* ---- Background ---- */
+.app-wrap {
+  min-height: 100vh;
+  background: 
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(120, 80, 255, 0.35), transparent),
+    radial-gradient(ellipse 80% 60% at 90% 50%, rgba(255, 100, 150, 0.2), transparent),
+    radial-gradient(ellipse 60% 80% at 10% 80%, rgba(80, 180, 255, 0.25), transparent),
+    linear-gradient(160deg, #0f0e17 0%, #1a1825 40%, #16141f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.app-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.15) 100%);
+  pointer-events: none;
+}
+
+/* ---- Main card ---- */
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(165deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 
+    0 25px 50px -12px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.05) inset;
+  backdrop-filter: blur(12px);
+  animation: cardIn 0.6s ease-out;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---- Title ---- */
+.container h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.75) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.container h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin: 1.5rem 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.container h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  margin: 0.5rem 0 1rem;
+}
+
+/* ---- Error message ---- */
+.error-msg {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  font-weight: 500;
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* ---- Loading ---- */
+.loading-text {
+  color: rgba(255,255,255,0.6);
+  font-size: 1rem;
+  margin: 1rem 0;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* ---- Input ---- */
+input[type="number"] {
+  width: 100%;
+  max-width: 200px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="number"]::placeholder {
+  color: rgba(255,255,255,0.35);
+}
+
+input[type="number"]:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.6;
+}
+
+/* ---- Buttons ---- */
+.container button {
+  padding: 0.9rem 1.5rem;
+  margin: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+}
+
+.container button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.5);
+}
+
+.container button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.container button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.container button.correct {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+}
+
+.container button.correct:hover:not(:disabled) {
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.5);
+}
+
+/* ---- Result text (user feedback) ---- */
+.container > p {
+  margin: 1rem 0 0;
+  min-height: 1.5em;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+}
+
+/* ---- Result screen ---- */
+.container .result-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.25rem 0;
+}
+
+.container .result-stat {
+  padding: 0.75rem 1.25rem;
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.container .result-stat span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.25rem;
+}
+
+.container .result-stat strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.container .winner-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: winnerIn 0.5s ease-out;
+}
+
+@keyframes winnerIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---- AI greeting ---- */
+.container .ai-greeting {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin: 0 0 0.25rem;
+}
+
+/* ---- AI hint text ---- */
+.container .ai-hint {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+/* ---- Button group for AI ---- */
+.container .button-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* ---- Game info / Start screen ---- */
+.game-info {
+  text-align: left;
+  margin: 1rem 0 1.5rem;
+  padding: 1.25rem;
+  background: rgba(255,255,255,0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.game-info h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.game-info p {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.8);
+}
+
+.game-info ul {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.game-info li {
+  margin-bottom: 0.5rem;
+}
+
+.game-info .choose-prompt {
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  margin-bottom: 0.5rem !important;
+}
+
+.start-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.start-buttons button {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+}
