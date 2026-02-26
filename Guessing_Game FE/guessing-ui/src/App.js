@@ -3,6 +3,8 @@ import "./App.css";
 
 function App() {
 
+  console.log("API_BASE:", process.env.REACT_APP_API_BASE);
+
   
   const [stage, setStage] = useState("START");
   const [userFirstPlayer, setUserFirstPlayer] = useState(true);
@@ -22,7 +24,7 @@ function App() {
   const [winner, setWinner] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const API_BASE = process.env.REACT_APP_API_BASE;
 
   const isValidGuess = () => {
     const n = parseInt(guess, 10);
@@ -178,7 +180,7 @@ function App() {
     try {
       await fetch(`${API_BASE}/api/user/reset`, { method: "POST" });
     } catch {
-      // Continue resetting UI even if backend fails
+        
     }
     setStage("START");
     setGuess("");
@@ -195,7 +197,7 @@ function App() {
   return (
     <div className="app-wrap">
       <div className="container">
-        <h1>🎯 Number Showdown</h1>
+        <h1> Number Showdown</h1>
         {error && <p className="error-msg">{error}</p>}
 
       {/* START / WELCOME */}

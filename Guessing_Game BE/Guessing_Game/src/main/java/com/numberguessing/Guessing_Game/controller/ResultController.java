@@ -10,7 +10,11 @@ import com.numberguessing.Guessing_Game.service.GameResultService;
 
 @RestController
 @RequestMapping("/api/result")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+	    "http://localhost:3000",
+	    "http://localhost:3001",
+	    "https://number-showdown.vercel.app"
+	})
 public class ResultController {
 	
 	@Autowired
