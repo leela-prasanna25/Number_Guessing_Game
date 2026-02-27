@@ -28,14 +28,14 @@ const API_BASE = process.env.REACT_APP_API_BASE;
 
   const isValidGuess = () => {
     const n = parseInt(guess, 10);
-    return !isNaN(n) && n >= 1 && n <= 50;
+    return !isNaN(n) && n >= 1 && n <= 100;
   };
 
   const userGuess = async () => {
     setError("");
     if (!guess) return;
     if (!isValidGuess()) {
-      setError("Please enter a number between 1 and 50.");
+      setError("Please enter a number between 1 and 100.");
       return;
     }
     setLoading(true);
@@ -75,7 +75,7 @@ const API_BASE = process.env.REACT_APP_API_BASE;
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/ai/start?max=50`, {
+      const res = await fetch(`${API_BASE}/api/ai/start?max=100`, {
         method: "POST",
       });
       if (!res.ok) throw new Error("Could not start AI");
@@ -205,7 +205,7 @@ const API_BASE = process.env.REACT_APP_API_BASE;
         <>
           <div className="game-info">
             <h2>How to Play</h2>
-            <p>You and the computer take turns guessing a number between 1 and 50. Whoever uses fewer attempts wins!</p>
+            <p>You and the computer take turns guessing a number between 1 and 100. Whoever uses fewer attempts wins!</p>
             <ul>
               <li><strong>Your turn:</strong> Guess the computer&apos;s secret number.</li>
               <li><strong>Computer&apos;s turn:</strong> You think of a number. Tell the computer &quot;Higher&quot; or &quot;Lower&quot; until it guesses correctly.</li>
@@ -231,11 +231,11 @@ const API_BASE = process.env.REACT_APP_API_BASE;
           <input
             type="number"
             min={1}
-            max={50}
+            max={100}
             value={guess}
             onChange={(e) => setGuess(e.target.value)}
-            placeholder="1 - 50"
-            aria-label="Your guess between 1 and 50"
+            placeholder="1 - 100"
+            aria-label="Your guess between 1 and 100"
           />
 
           <button onClick={userGuess} disabled={loading}>
