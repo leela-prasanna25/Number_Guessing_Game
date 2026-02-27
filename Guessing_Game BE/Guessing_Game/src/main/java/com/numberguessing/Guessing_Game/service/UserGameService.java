@@ -16,7 +16,7 @@ public class UserGameService {
     }
 
     public String check(int guess) {
-        if (guess < 1 || guess > 100) {
+        if (guess < 1 || guess > 50) {
             return "Please enter a number between 1 and 100.";
         }
         attempts++;
@@ -36,7 +36,7 @@ public class UserGameService {
     }
 
     public void reset() {
-        number = new Random().nextInt(100) + 1;
+        number = new Random().nextInt(50) + 1;
         attempts = 0;
         lastAttempts = 0;
     }
