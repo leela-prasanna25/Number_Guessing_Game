@@ -30,7 +30,6 @@ const API_BASE = process.env.REACT_APP_API_BASE;
     const n = parseInt(guess, 10);
     return !isNaN(n) && n >= 1 && n <= 100;
   };
-
   const userGuess = async () => {
     setError("");
     if (!guess) return;
@@ -48,7 +47,7 @@ const API_BASE = process.env.REACT_APP_API_BASE;
       const data = await res.text();
       setUserResult(data);
 
-      if (data.toLowerCase().includes("correct")) {
+      if (data.toLowerCase().includes("correct guess")) {
         const a = await fetch(`${API_BASE}/api/user/attempts`);
         if (!a.ok) throw new Error("Could not get attempts");
         const att = await a.text();
