@@ -12,10 +12,7 @@ import com.numberguessing.Guessing_Game.service.AiGameService;
 
 @RestController
 @RequestMapping("/api/ai")
-@CrossOrigin(origins = {
-	    "http://localhost:3000",
-	    "https://number-showdown.vercel.app"
-	})
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class AiGameController {
 	@Autowired
 	private AiGameService service;

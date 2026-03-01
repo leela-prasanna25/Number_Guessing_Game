@@ -2,10 +2,6 @@ import React, { useState } from "react";
 import "./App.css";
 
 function App() {
-
-  console.log("API_BASE:", process.env.REACT_APP_API_BASE);
-
-  
   const [stage, setStage] = useState("START");
   const [userFirstPlayer, setUserFirstPlayer] = useState(true);
 
@@ -24,7 +20,7 @@ function App() {
   const [winner, setWinner] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-const API_BASE = process.env.REACT_APP_API_BASE;
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
 
   const isValidGuess = () => {
     const n = parseInt(guess, 10);
@@ -44,17 +40,19 @@ const API_BASE = process.env.REACT_APP_API_BASE;
         { method: "POST" }
       );
       if (!res.ok) throw new Error("Guess failed");
-      const data = await res.text();
+      const data = (await res.text()).trim();
       setUserResult(data);
 
-      if (data.toLowerCase().includes("correct guess")) {
+      const isCorrect = data.toLowerCase().includes("correct!");
+      if (isCorrect) {
         const a = await fetch(`${API_BASE}/api/user/attempts`);
         if (!a.ok) throw new Error("Could not get attempts");
-        const att = await a.text();
-        setUserAttempts(parseInt(att, 10) || 0);
+        const att = (await a.text()).trim();
+        const attemptsCount = parseInt(att, 10) || 0;
+        setUserAttempts(attemptsCount);
         if (userFirstPlayer) {
-          setStage("AI");
           await startAi();
+          setStage("AI");
         } else {
           await getWinner();
           setStage("RESULT");
@@ -78,7 +76,7 @@ const API_BASE = process.env.REACT_APP_API_BASE;
         method: "POST",
       });
       if (!res.ok) throw new Error("Could not start AI");
-      const data = await res.text();
+      const data = (await res.text()).trim();
       setAiGuess(data);
       setAiGreeting(["Hi!", "Hello!", "Hey there!"][Math.floor(Math.random() * 3)]);
     } catch (err) {
@@ -101,8 +99,9 @@ const API_BASE = process.env.REACT_APP_API_BASE;
         });
         const a = await fetch(`${API_BASE}/api/ai/attempts`);
         if (!a.ok) throw new Error("Could not get AI attempts");
-        const att = await a.text();
-        setAiAttempts(parseInt(att, 10) || 0);
+        const att = (await a.text()).trim();
+        const attemptsCount = parseInt(att, 10) || 0;
+        setAiAttempts(attemptsCount);
         if (userFirstPlayer) {
           await getWinner();
           setStage("RESULT");
@@ -123,7 +122,7 @@ const API_BASE = process.env.REACT_APP_API_BASE;
         { method: "POST" }
       );
       if (!res.ok) throw new Error("Feedback failed");
-      const data = await res.text();
+      const data = (await res.text()).trim();
       setAiGuess(data);
       setAiGreeting(["Hi!", "Hello!", "Hey there!"][Math.floor(Math.random() * 3)]);
     } catch (err) {
