@@ -118,7 +118,15 @@ function App() {
         `${API_BASE}/api/ai/feedback?result=${type}`,
         { method: "POST" }
       );
-      if (!res.ok) throw new Error("Feedback failed");
+      if (!res.ok) {
+        // If the backend says this feedback is impossible (e.g. inconsistent
+        // higher/lower sequence), show a friendly message instead of a hard
+        // error and let the player restart.
+        setError(
+          "The computer is confused by that answer. Please check your number and tap Play Again to start a new game."
+        );
+        return;
+      }
       const data = (await res.text()).trim();
       setAiGuess(data);
       setAiGreeting(["Hi!", "Hello!", "Hey there!"][Math.floor(Math.random() * 3)]);
