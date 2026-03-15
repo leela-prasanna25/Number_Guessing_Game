@@ -2,25 +2,27 @@ import React, { useState } from "react";
 import "./App.css";
 
 function App() {
-  const [stage, setStage] = useState("START");
-  const [userFirstPlayer, setUserFirstPlayer] = useState(true);
-
+  const [stage, setStage] = useState("START"); // START | PLAY | RESULT | GOODBYE
   const [guess, setGuess] = useState("");
   const [userResult, setUserResult] = useState("");
   const [userAttempts, setUserAttempts] = useState(0);
-
-  
 
   const [aiGuess, setAiGuess] = useState(null);
   const [aiAttempts, setAiAttempts] = useState(0);
   const [aiGreeting, setAiGreeting] = useState("");
 
-
-
   const [winner, setWinner] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
+
+  // Race mode state
+  const [round, setRound] = useState(1);
+  const [phase, setPhase] = useState("USER_GUESS"); // USER_GUESS | AI_GUESS
+  const [userDone, setUserDone] = useState(false);
+  const [aiDone, setAiDone] = useState(false);
+  const [aiStarted, setAiStarted] = useState(false);
+
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
 
   const isValidGuess = () => {
     const n = parseInt(guess, 10);
@@ -28,7 +30,8 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
   };
   const userGuess = async () => {
     setError("");
-    if (!guess) return;
+    // User can act only in their phase and while no one has finished.
+    if (!guess || userDone || aiDone || phase !== "USER_GUESS") return;
     if (!isValidGuess()) {
       setError("Please enter a number between 1 and 100.");
       return;
@@ -50,13 +53,36 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
         const att = (await a.text()).trim();
         const attemptsCount = parseInt(att, 10) || 0;
         setUserAttempts(attemptsCount);
-        if (userFirstPlayer) {
-          await startAi();
-          setStage("AI");
-        } else {
-          await getWinner();
-          setStage("RESULT");
+        setUserDone(true);
+
+        // If the AI has already started guessing in previous rounds,
+        // also fetch its current attempt count so the result screen
+        // doesn't show 0 attempts for the computer.
+        if (aiStarted) {
+          try {
+            const aa = await fetch(`${API_BASE}/api/ai/attempts`);
+            if (aa.ok) {
+              const aText = (await aa.text()).trim();
+              const aAttempts = parseInt(aText, 10);
+              if (!Number.isNaN(aAttempts)) {
+                setAiAttempts(aAttempts);
+              }
+            }
+          } catch {
+            // ignore; we still show user attempts correctly
+          }
         }
+
+        setWinner("🏆 You guessed the computer's number first!");
+        setStage("RESULT");
+        return;
+      }
+
+      // Not correct: move to AI's guess in this round
+      setPhase("AI_GUESS");
+      if (!aiStarted) {
+        await startAi();
+        setAiStarted(true);
       }
     } catch (err) {
       setError(err.message || "Could not connect. Is the backend running?");
@@ -92,6 +118,10 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
   const feedback = async (type) => {
     setError("");
     setLoading(true);
+    if (phase !== "AI_GUESS" || userDone || aiDone) {
+      setLoading(false);
+      return;
+    }
     if (type === "correct") {
       try {
         await fetch(`${API_BASE}/api/ai/feedback?result=correct`, {
@@ -102,13 +132,26 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
         const att = (await a.text()).trim();
         const attemptsCount = parseInt(att, 10) || 0;
         setAiAttempts(attemptsCount);
-        if (userFirstPlayer) {
-          await getWinner();
-          setStage("RESULT");
-        } else {
-          await fetch(`${API_BASE}/api/user/reset`, { method: "POST" });
-          setStage("USER");
+        setAiDone(true);
+        // Ensure we also know how many attempts the user used so far
+        // (otherwise it will display as 0 when the computer wins first).
+        if (!userDone) {
+          try {
+            const ua = await fetch(`${API_BASE}/api/user/attempts`);
+            if (ua.ok) {
+              const uText = (await ua.text()).trim();
+              const uAttempts = parseInt(uText, 10);
+              if (!Number.isNaN(uAttempts)) {
+                setUserAttempts(uAttempts);
+              }
+            }
+          } catch {
+            // ignore - we still show AI attempts correctly
+          }
         }
+        // Computer finishes on this round -> computer wins race
+        setWinner("🤖 Computer guessed your number first!");
+        setStage("RESULT");
       } catch (err) {
         setError(err.message || "Something went wrong.");
       } finally {
@@ -130,28 +173,17 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
     } finally {
       setLoading(false);
     }
+
+    // Higher / lower given: end this round, go back to user for next round
+    setRound((r) => r + 1);
+    setPhase("USER_GUESS");
   };
 
 
   
 
-  const getWinner = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/result/winner`);
-      if (!res.ok) throw new Error("Could not get result");
-      const data = await res.text();
-      setWinner(data);
-    } catch (err) {
-      setWinner("Could not determine winner.");
-    }
-  };
-
-
-  
-
-  const startGame = async (userGoesFirst) => {
+  const startGame = async () => {
     setError("");
-    setUserFirstPlayer(userGoesFirst);
     setGuess("");
     setUserResult("");
     setUserAttempts(0);
@@ -159,18 +191,18 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
     setAiAttempts(0);
     setAiGreeting("");
     setWinner("");
+    setUserDone(false);
+    setAiDone(false);
+    setRound(1);
+    setPhase("USER_GUESS");
+    setAiStarted(false);
     try {
       await fetch(`${API_BASE}/api/user/reset`, { method: "POST" });
     } catch {
       // Continue even if backend fails
     }
-    if (userGoesFirst) {
-      setStage("USER");
-    } else {
-      setStage("AI");
-      setLoading(true);
-      await startAi();
-    }
+    // User always plays first in this version.
+    setStage("PLAY");
   };
 
   const restartGame = async () => {
@@ -188,6 +220,11 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
     setAiAttempts(0);
     setAiGreeting("");
     setWinner("");
+    setUserDone(false);
+    setAiDone(false);
+    setRound(1);
+    setPhase("USER_GUESS");
+    setAiStarted(false);
   };
 
 
@@ -203,80 +240,121 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
         <>
           <div className="game-info">
             <h2>How to Play</h2>
-            <p>You and the computer take turns guessing a number between 1 and 100. Whoever uses fewer attempts wins!</p>
+            <p>
+              In each round, <strong>you</strong> guess the computer&apos;s secret
+              number between 1 and 100.
+            </p>
+            <p>
+              Then the <strong>computer</strong> guesses your number once. The
+              first to guess correctly wins the game immediately.
+            </p>
             <ul>
-              <li><strong>Your turn:</strong> Guess the computer&apos;s secret number.</li>
-              <li><strong>Computer&apos;s turn:</strong> You think of a number. Tell the computer &quot;Higher&quot; or &quot;Lower&quot; until it guesses correctly.</li>
+              <li><strong>Your turn:</strong> One guess per round.</li>
+              <li><strong>Computer&apos;s turn:</strong> One guess per round; you say Higher, Lower, or Correct.</li>
             </ul>
-            <p className="choose-prompt">Who plays first?</p>
+            <p className="choose-prompt">Tap below when you&apos;re ready.</p>
           </div>
           <div className="start-buttons">
-            <button onClick={() => startGame(true)}>
-              I Play First 🎮
-            </button>
-            <button onClick={() => startGame(false)}>
-              Computer Plays First 🤖
+            <button onClick={startGame}>
+              Start Game 🎮
             </button>
           </div>
         </>
       )}
 
-      {/* USER TURN */}
-      {stage === "USER" && (
-        <>
-          <h2>Your Turn</h2>
+      {/* PLAY SCREEN: USER + COMPUTER SIDE BY SIDE */}
+      {stage === "PLAY" && (
+        <div className="play-grid">
+          {/* User panel */}
+          <div
+            className={
+              "panel user-panel" +
+              (phase === "USER_GUESS" && !userDone && !aiDone ? " active" : "")
+            }
+          >
+            <h2>Your Guess</h2>
+            <p className="panel-subtitle">
+              Guess the computer&apos;s secret number.
+            </p>
 
-          <input
-            type="number"
-            min={1}
-            max={100}
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            placeholder="1 - 100"
-            aria-label="Your guess between 1 and 100"
-          />
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={guess}
+              onChange={(e) => setGuess(e.target.value)}
+              placeholder="1 - 100"
+              aria-label="Your guess between 1 and 100"
+              disabled={
+                loading || userDone || aiDone || phase !== "USER_GUESS"
+              }
+            />
 
-          <button onClick={userGuess} disabled={loading}>
-            {loading ? "Checking…" : "Guess"}
-          </button>
-
-          <p>{userResult}</p>
-        </>
-      )}
-
-
-      {/* AI TURN */}
-      {stage === "AI" && (
-        <>
-          <h2>🤖 Computer Turn</h2>
-
-          {loading && !aiGuess ? (
-            <p className="loading-text">AI is thinking…</p>
-          ) : (
-            <>
-              <p className="ai-greeting">{aiGreeting}</p>
-              <h3>My Guess: {aiGuess}</h3>
-            </>
-          )}
-
-          <p className="ai-hint">Tell me if your number is higher or lower</p>
-
-          <div className="button-group">
-            <button onClick={() => feedback("higher")} disabled={loading}>
-              Higher 🔼
-            </button>
-            <button onClick={() => feedback("lower")} disabled={loading}>
-              Lower 🔽
-            </button>
             <button
-              className="correct"
-              onClick={() => feedback("correct")}
-              disabled={loading}
+              onClick={userGuess}
+              disabled={loading || userDone || aiDone || phase !== "USER_GUESS"}
             >
-              Correct ✅
+              {loading && phase === "USER_GUESS" ? "Checking…" : "Guess"}
             </button>
+
+            <p className="panel-result">{userResult}</p>
           </div>
-        </>
+
+          {/* AI panel */}
+          <div
+            className={
+              "panel ai-panel" +
+              (phase === "AI_GUESS" && !userDone && !aiDone ? " active" : "")
+            }
+          >
+            <h2>🤖 Computer Guess</h2>
+            <p className="panel-subtitle">
+              You secretly choose a number. Tell the computer if it should go
+              higher or lower.
+            </p>
+
+            <p className="round-label">Round {round}</p>
+
+            {loading && phase === "AI_GUESS" && !aiGuess ? (
+              <p className="loading-text">AI is thinking…</p>
+            ) : (
+              <>
+                <p className="ai-greeting">{aiGreeting}</p>
+                <h3>My Guess: {aiGuess ?? "—"}</h3>
+              </>
+            )}
+
+            <p className="ai-hint">Is your number higher or lower?</p>
+
+            <div className="button-group">
+              <button
+                onClick={() => feedback("higher")}
+                disabled={
+                  loading || userDone || aiDone || phase !== "AI_GUESS"
+                }
+              >
+                Higher 🔼
+              </button>
+              <button
+                onClick={() => feedback("lower")}
+                disabled={
+                  loading || userDone || aiDone || phase !== "AI_GUESS"
+                }
+              >
+                Lower 🔽
+              </button>
+              <button
+                className="correct"
+                onClick={() => feedback("correct")}
+                disabled={
+                  loading || userDone || aiDone || phase !== "AI_GUESS"
+                }
+              >
+                Correct ✅
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
 
@@ -285,21 +363,40 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
         <>
           <h2>🏆 Result</h2>
 
-          <div className="result-stats">
-            <div className="result-stat">
-              <span>You</span>
-              <strong>{userAttempts}</strong> attempts
-            </div>
-            <div className="result-stat">
-              <span>Computer</span>
-              <strong>{aiAttempts}</strong> attempts
-            </div>
-          </div>
-
           <p className="winner-text">{winner}</p>
 
-          <button onClick={restartGame} disabled={loading}>
-            Play Again 🔄
+          <div className="result-buttons">
+            <button onClick={restartGame} disabled={loading}>
+              Play Again 🔄
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStage("GOODBYE");
+              }}
+              disabled={loading}
+            >
+              Stop Game ✖
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* GOODBYE / END SCREEN */}
+      {stage === "GOODBYE" && (
+        <>
+          <h2>👋 Thanks for playing!</h2>
+          <p className="winner-text">
+            Have a great day! Come back any time for another number showdown.
+          </p>
+          <button
+            onClick={() => {
+              // Soft reset back to the intro screen
+              setStage("START");
+            }}
+            disabled={loading}
+          >
+            Back to Home
           </button>
         </>
       )}

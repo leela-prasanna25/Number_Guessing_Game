@@ -26,7 +26,7 @@
 .container {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 720px;
   background: linear-gradient(165deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 24px;
@@ -318,4 +318,74 @@ input[type="number"]::-webkit-outer-spin-button {
   width: 100%;
   padding: 1rem 1.5rem;
   font-size: 1rem;
+}
+
+.result-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 480px) {
+  .result-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+/* ---- Side-by-side play layout ---- */
+.play-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .play-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.panel {
+  padding: 1.25rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 20, 0.35);
+  text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s,
+    background 0.2s, opacity 0.2s;
+}
+
+.panel-subtitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.panel-result {
+  margin: 0.75rem 0 0;
+  min-height: 1.5em;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.panel.active {
+  border-color: rgba(129, 140, 248, 0.9);
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.6),
+    0 12px 35px rgba(15, 23, 42, 0.8);
+  background: radial-gradient(
+      circle at top,
+      rgba(129, 140, 248, 0.32),
+      transparent 60%
+    ),
+    rgba(15, 23, 42, 0.9);
+  transform: translateY(-1px);
+}
+
+.user-panel h2,
+.ai-panel h2 {
+  margin-top: 0;
 }
