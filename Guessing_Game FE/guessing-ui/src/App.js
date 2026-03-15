@@ -5,10 +5,8 @@ function App() {
   const [stage, setStage] = useState("START"); // START | PLAY | RESULT | GOODBYE
   const [guess, setGuess] = useState("");
   const [userResult, setUserResult] = useState("");
-  const [userAttempts, setUserAttempts] = useState(0);
 
   const [aiGuess, setAiGuess] = useState(null);
-  const [aiAttempts, setAiAttempts] = useState(0);
   const [aiGreeting, setAiGreeting] = useState("");
 
   const [winner, setWinner] = useState("");
@@ -48,30 +46,7 @@ function App() {
 
       const isCorrect = data.toLowerCase().includes("correct!");
       if (isCorrect) {
-        const a = await fetch(`${API_BASE}/api/user/attempts`);
-        if (!a.ok) throw new Error("Could not get attempts");
-        const att = (await a.text()).trim();
-        const attemptsCount = parseInt(att, 10) || 0;
-        setUserAttempts(attemptsCount);
         setUserDone(true);
-
-        // If the AI has already started guessing in previous rounds,
-        // also fetch its current attempt count so the result screen
-        // doesn't show 0 attempts for the computer.
-        if (aiStarted) {
-          try {
-            const aa = await fetch(`${API_BASE}/api/ai/attempts`);
-            if (aa.ok) {
-              const aText = (await aa.text()).trim();
-              const aAttempts = parseInt(aText, 10);
-              if (!Number.isNaN(aAttempts)) {
-                setAiAttempts(aAttempts);
-              }
-            }
-          } catch {
-            // ignore; we still show user attempts correctly
-          }
-        }
 
         setWinner("🏆 You guessed the computer's number first!");
         setStage("RESULT");
@@ -127,28 +102,7 @@ function App() {
         await fetch(`${API_BASE}/api/ai/feedback?result=correct`, {
           method: "POST",
         });
-        const a = await fetch(`${API_BASE}/api/ai/attempts`);
-        if (!a.ok) throw new Error("Could not get AI attempts");
-        const att = (await a.text()).trim();
-        const attemptsCount = parseInt(att, 10) || 0;
-        setAiAttempts(attemptsCount);
         setAiDone(true);
-        // Ensure we also know how many attempts the user used so far
-        // (otherwise it will display as 0 when the computer wins first).
-        if (!userDone) {
-          try {
-            const ua = await fetch(`${API_BASE}/api/user/attempts`);
-            if (ua.ok) {
-              const uText = (await ua.text()).trim();
-              const uAttempts = parseInt(uText, 10);
-              if (!Number.isNaN(uAttempts)) {
-                setUserAttempts(uAttempts);
-              }
-            }
-          } catch {
-            // ignore - we still show AI attempts correctly
-          }
-        }
         // Computer finishes on this round -> computer wins race
         setWinner("🤖 Computer guessed your number first!");
         setStage("RESULT");
@@ -186,9 +140,7 @@ function App() {
     setError("");
     setGuess("");
     setUserResult("");
-    setUserAttempts(0);
     setAiGuess(null);
-    setAiAttempts(0);
     setAiGreeting("");
     setWinner("");
     setUserDone(false);
@@ -215,9 +167,7 @@ function App() {
     setStage("START");
     setGuess("");
     setUserResult("");
-    setUserAttempts(0);
     setAiGuess(null);
-    setAiAttempts(0);
     setAiGreeting("");
     setWinner("");
     setUserDone(false);
